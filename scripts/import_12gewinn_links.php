@@ -68,9 +68,15 @@ function crawlCategoryPage(string $url): array
 
 function insertLink(PDO $pdo, string $link): void
 {
-    $stmt = $pdo->prepare('SELECT 1 FROM gewinnspiele WHERE link_zur_webseite = :link LIMIT 1');
-    $stmt->execute([':link' => $link]);
-    if ($stmt->fetch()) {
+    // Links, die auf 12gewinn.de selbst zeigen, NICHT speichern
+    if (strpos($link, 'https://www.12gewinn.de/') === 0) {
+        return;
+    }
+
+    // Keine doppelten Einträge desselben Links
+    $select = $pdo->prepare('SELECT id FROM gewinnspiele WHERE link_zur_webseite = :link LIMIT 1');
+    $select->execute([':link' => $link]);
+    if ($select->fetch()) {
         return;
     }
 
